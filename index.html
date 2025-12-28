@@ -42,17 +42,85 @@ for (let i = 0; i < max*5; i++) {
 }
 
 // Wörter laden
-fetch("woerter.txt").then(r=>r.text()).then(t=>{
-    words = t.split("\n").map(w=>w.trim());
-    solution = words[Math.floor(Math.random()*words.length)];
+fetch("woerter.txt").then(r => r.text()).then(t => {
+    words = t.split("\n").map(w => w.trim());
+    solution = words[Math.floor(Math.random() * words.length)];
     console.log("Lösungswort:", solution); // für Testzwecke
+});
 
-    // Enter-Taste unterstützt
+// Enter-Taste unterstützen
 document.getElementById("guess").addEventListener("keydown", function(e) {
     if (e.key === "Enter") {
         submitGuess();
     }
 });
+
+function submitGuess() {
+    const input = document.getElementById("guess");
+    const guess = input.value.toLowerCase();
+
+    // 1️⃣ Länge prüfen
+    if (guess.length !== 5) {
+        alert("Bitte genau 5 Buchstaben eingeben");
+        return;
+    }
+
+    // 2️⃣ Wortliste prüfen
+    if (!words.includes(guess)) {
+        alert("Dieses Wort ist nicht gültig!");
+        input.value = "";
+        return;
+    }
+
+    const start = row*5;
+    const solutionArray = solution.split('');
+    const guessArray = guess.split('');
+    const colors = ["absent","absent","absent","absent","absent"];
+    const solutionUsed = [false,false,false,false,false];
+
+    // 3️⃣ Grün prüfen
+    for (let i = 0; i < 5; i++) {
+        if (guessArray[i] === solutionArray[i]) {
+            colors[i] = "correct";
+            solutionUsed[i] = true;
+        }
+    }
+
+    // 4️⃣ Gelb prüfen
+    for (let i = 0; i < 5; i++) {
+        if (colors[i] === "correct") continue;
+        for (let j = 0; j < 5; j++) {
+            if (!solutionUsed[j] && guessArray[i] === solutionArray[j]) {
+                colors[i] = "present";
+                solutionUsed[j] = true;
+                break;
+            }
+        }
+    }
+
+    // 5️⃣ Zellen einfärben
+    for (let i = 0; i < 5; i++) {
+        const c = grid.children[start + i];
+        c.textContent = guessArray[i].toUpperCase();
+        c.className = "cell " + colors[i];
+    }
+
+    // 6️⃣ Gewinn prüfen
+    if (guess === solution) {
+        document.getElementById("msg").textContent = "🎉 Gewonnen!";
+        input.disabled = true;
+        return;
+    }
+
+    row++;
+    input.value = "";
+
+    // 7️⃣ Verlust prüfen
+    if (row >= max) {
+        document.getElementById("msg").textContent = "😢 Verloren! Wort war: " + solution.toUpperCase();
+        input.disabled = true;
+    }
+}
 
 });
 
