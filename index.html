@@ -4,44 +4,24 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wordle Deutsch</title>
-
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#121213">
-
 <style>
-body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    background: #121213;
-    color: white;
-}
-.grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 5px;
-    max-width: 300px;
-    margin: 20px auto;
-}
-.cell {
-    border: 2px solid #3a3a3c;
-    height: 55px;
-    font-size: 28px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.correct { background: #538d4e; }
-.present { background: #b59f3b; }
-.absent  { background: #3a3a3c; }
+body { font-family: Arial, sans-serif; text-align:center; background:#121213; color:white; margin:0; padding:10px; }
+.grid { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; max-width:300px; margin:20px auto; }
+.cell { border:2px solid #3a3a3c; height:55px; font-size:28px; font-weight:bold; display:flex; align-items:center; justify-content:center; text-transform:uppercase; }
+.correct { background:#538d4e; border-color:#538d4e; }
+.present { background:#b59f3b; border-color:#b59f3b; }
+.absent { background:#3a3a3c; border-color:#3a3a3c; }
+input { font-size:20px; padding:8px; width:140px; text-transform:uppercase; }
+button { font-size:18px; padding:8px 12px; margin-left:5px; }
 </style>
 </head>
 <body>
 
-<h1>Mein Wordle</h1>
+<h1>Wordle Deutsch 🇩🇪</h1>
 <div id="grid" class="grid"></div>
-
-<input id="guess" maxlength="5">
+<input id="guess" maxlength="5" placeholder="Wort">
 <button onclick="submitGuess()">OK</button>
 <p id="msg"></p>
 
@@ -54,75 +34,84 @@ let row = 0;
 const max = 6;
 const grid = document.getElementById("grid");
 
-for (let i = 0; i < max * 5; i++) {
+// Grid erstellen
+for (let i = 0; i < max*5; i++) {
     const c = document.createElement("div");
     c.className = "cell";
     grid.appendChild(c);
 }
 
 // Wörter laden
-fetch("woerter.txt").then(r => r.text()).then(t => {
-    words = t.split("\n").map(w => w.trim());
-    solution = words[Math.floor(Math.random() * words.length)];
+fetch("woerter.txt").then(r=>r.text()).then(t=>{
+    words = t.split("\n").map(w=>w.trim());
+    solution = words[Math.floor(Math.random()*words.length)];
+    console.log("Lösungswort:", solution); // für Testzwecke
+
+    // Enter-Taste unterstützt
+document.getElementById("guess").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+        submitGuess();
+    }
+});
+
 });
 
 function submitGuess() {
-    const guessInput = document.getElementById("guess");
-    const guess = guessInput.value.toLowerCase();
+    const input = document.getElementById("guess");
+    const guess = input.value.toLowerCase();
+    if (guess.length !==5) { alert("Bitte genau 5 Buchstaben eingeben"); return; }
 
-    if (guess.length !== 5) return;
-
-    const start = row * 5;
+    const start = row*5;
     const solutionArray = solution.split('');
     const guessArray = guess.split('');
-
-    // Ergebnisfarben vorbereiten
     const colors = ["absent","absent","absent","absent","absent"];
     const solutionUsed = [false,false,false,false,false];
 
-    // 1️⃣ Grün prüfen (richtige Position)
-    for (let i = 0; i < 5; i++) {
-        if (guessArray[i] === solutionArray[i]) {
-            colors[i] = "correct";
-            solutionUsed[i] = true;
+    // 1️⃣ Grün prüfen
+    for (let i=0;i<5;i++){
+        if(guessArray[i]===solutionArray[i]){
+            colors[i]="correct";
+            solutionUsed[i]=true;
         }
     }
 
-    // 2️⃣ Gelb prüfen (falsche Position)
-    for (let i = 0; i < 5; i++) {
-        if (colors[i] === "correct") continue;
-        for (let j = 0; j < 5; j++) {
-            if (!solutionUsed[j] && guessArray[i] === solutionArray[j]) {
-                colors[i] = "present";
-                solutionUsed[j] = true;
+    // 2️⃣ Gelb prüfen
+    for (let i=0;i<5;i++){
+        if(colors[i]==="correct") continue;
+        for(let j=0;j<5;j++){
+            if(!solutionUsed[j] && guessArray[i]===solutionArray[j]){
+                colors[i]="present";
+                solutionUsed[j]=true;
                 break;
             }
         }
     }
 
-    // 3️⃣ Zellen einfärben
-    for (let i = 0; i < 5; i++) {
-        const c = grid.children[start + i];
+    // Zellen einfärben
+    for(let i=0;i<5;i++){
+        const c = grid.children[start+i];
         c.textContent = guessArray[i].toUpperCase();
-        c.className = "cell " + colors[i];
+        c.className = "cell "+colors[i];
     }
 
-    // 4️⃣ Gewinn prüfen
-    if (guess === solution) {
-        document.getElementById("msg").textContent = "🎉 Gewonnen!";
-        guessInput.disabled = true;
+    if(guess===solution){
+        document.getElementById("msg").textContent="🎉 Gewonnen!";
+        input.disabled=true;
         return;
     }
 
     row++;
-    guessInput.value = "";
+    input.value="";
 
-    // 5️⃣ Verlust prüfen
-    if (row >= max) {
-        document.getElementById("msg").textContent = "😢 Verloren! Wort war: " + solution.toUpperCase();
-        guessInput.disabled = true;
+    if(row>=max){
+        document.getElementById("msg").textContent="Leider verloren! Wort war: "+solution.toUpperCase();
+        input.disabled=true;
     }
 }
 </script>
+
+</body>
+</html>
+
 </body>
 </html>
