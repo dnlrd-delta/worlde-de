@@ -19,7 +19,7 @@ button { font-size:18px; padding:8px 12px; margin-left:5px; }
 </head>
 <body>
 
-<h1>Wordle Deutsch 🇩🇪</h1>
+<h1>Mein Wordle</h1>
 <div id="grid" class="grid"></div>
 <input id="guess" maxlength="5" placeholder="Wort">
 <button onclick="submitGuess()">OK</button>
@@ -43,7 +43,10 @@ for (let i = 0; i < max*5; i++) {
 
 // Wörter laden
 fetch("woerter.txt").then(r => r.text()).then(t => {
-    words = t.split("\n").map(w => w.trim());
+    // Zeilen aufsplitten, Leerzeichen entfernen, nur 5-Buchstaben-Wörter
+    words = t.split("\n")
+             .map(w => w.trim().toLowerCase())
+             .filter(w => w.length === 5);
     solution = words[Math.floor(Math.random() * words.length)];
     console.log("Lösungswort:", solution); // für Testzwecke
 });
