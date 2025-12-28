@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wordle Deutsch</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#121213">
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background: #121213;
+    color: white;
+}
+.grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+    max-width: 300px;
+    margin: 20px auto;
+}
+.cell {
+    border: 2px solid #3a3a3c;
+    height: 55px;
+    font-size: 28px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.correct { background: #538d4e; }
+.present { background: #b59f3b; }
+.absent  { background: #3a3a3c; }
+</style>
+</head>
+<body>
+
+<h1>Wordle 🇩🇪</h1>
+<div id="grid" class="grid"></div>
+
+<input id="guess" maxlength="5">
+<button onclick="submitGuess()">OK</button>
+<p id="msg"></p>
+
+<script>
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("service-worker.js");
+}
+
+let words = [];
+let solution = "";
+let row = 0;
+const max = 6;
+const grid = document.getElementById("grid");
+
+for (let i = 0; i < max * 5; i++) {
+    const c = document.createElement("div");
+    c.className = "cell";
+    grid.appendChild(c);
+}
+
+fetch("woerter.txt")
+.then(r => r.text())
+.then(t => {
+    words = t.split("\n").map(w => w.trim());
+    solution = words[Math.floor(Math.random() * words.length)];
+});
+
+function submitGuess() {
+    const g = document.getElementById("guess").value.toLowerCase();
+    if (g.length !== 5) return;
+
+    for (let i = 0; i < 5; i++) {
+        const c = grid.children[row * 5 + i];
+        c.textContent = g[i];
+        if (g[i] === solution[i]) c.className = "cell correct";
+        else if (solution.includes(g[i])) c.className = "cell present";
+        else c.className = "cell absent";
+    }
+
+    if (g === solution) {
+        document.getElementById("msg").textContent = "🎉 Gewonnen!";
+        return;
+    }
+
+    row++;
+    document.getElementById("guess").value = "";
+}
+</script>
+</body>
+</html>
