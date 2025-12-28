@@ -46,9 +46,7 @@ body {
 <p id="msg"></p>
 
 <script>
-if ("serviceWorker" in navigator) {
-    navigator.serviceWorker.register("service-worker.js");
-}
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("service-worker.js");
 
 let words = [];
 let solution = "";
@@ -62,32 +60,68 @@ for (let i = 0; i < max * 5; i++) {
     grid.appendChild(c);
 }
 
-fetch("woerter.txt")
-.then(r => r.text())
-.then(t => {
+// Wörter laden
+fetch("woerter.txt").then(r => r.text()).then(t => {
     words = t.split("\n").map(w => w.trim());
     solution = words[Math.floor(Math.random() * words.length)];
 });
 
 function submitGuess() {
-    const g = document.getElementById("guess").value.toLowerCase();
-    if (g.length !== 5) return;
+    const guessInput = document.getElementById("guess");
+    const guess = guessInput.value.toLowerCase();
 
+    if (guess.length !== 5) return;
+
+    const start = row * 5;
+    const solutionArray = solution.split('');
+    const guessArray = guess.split('');
+
+    // Ergebnisfarben vorbereiten
+    const colors = ["absent","absent","absent","absent","absent"];
+    const solutionUsed = [false,false,false,false,false];
+
+    // 1️⃣ Grün prüfen (richtige Position)
     for (let i = 0; i < 5; i++) {
-        const c = grid.children[row * 5 + i];
-        c.textContent = g[i];
-        if (g[i] === solution[i]) c.className = "cell correct";
-        else if (solution.includes(g[i])) c.className = "cell present";
-        else c.className = "cell absent";
+        if (guessArray[i] === solutionArray[i]) {
+            colors[i] = "correct";
+            solutionUsed[i] = true;
+        }
     }
 
-    if (g === solution) {
+    // 2️⃣ Gelb prüfen (falsche Position)
+    for (let i = 0; i < 5; i++) {
+        if (colors[i] === "correct") continue;
+        for (let j = 0; j < 5; j++) {
+            if (!solutionUsed[j] && guessArray[i] === solutionArray[j]) {
+                colors[i] = "present";
+                solutionUsed[j] = true;
+                break;
+            }
+        }
+    }
+
+    // 3️⃣ Zellen einfärben
+    for (let i = 0; i < 5; i++) {
+        const c = grid.children[start + i];
+        c.textContent = guessArray[i].toUpperCase();
+        c.className = "cell " + colors[i];
+    }
+
+    // 4️⃣ Gewinn prüfen
+    if (guess === solution) {
         document.getElementById("msg").textContent = "🎉 Gewonnen!";
+        guessInput.disabled = true;
         return;
     }
 
     row++;
-    document.getElementById("guess").value = "";
+    guessInput.value = "";
+
+    // 5️⃣ Verlust prüfen
+    if (row >= max) {
+        document.getElementById("msg").textContent = "😢 Verloren! Wort war: " + solution.toUpperCase();
+        guessInput.disabled = true;
+    }
 }
 </script>
 </body>
