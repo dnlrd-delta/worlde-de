@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wordle Deutsch</title>
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#121213">
+<meta name="theme-color" content="#bd2113">
 <style>
 body { font-family: Arial, sans-serif; text-align:center; background:#121213; color:white; margin:0; padding:10px; }
 .grid { display:grid; grid-template-columns:repeat(5,1fr); gap:5px; max-width:300px; margin:20px auto; }
@@ -120,7 +120,7 @@ function submitGuess() {
 
     // 7️⃣ Verlust prüfen
     if (row >= max) {
-        document.getElementById("msg").textContent = "Leider Verloren! Wort war: " + solution.toUpperCase();
+        document.getElementById("msg").textContent = "Oh nein, leider verloren! Wort war: " + solution.toUpperCase();
         input.disabled = true;
     }
 }
