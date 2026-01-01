@@ -41,15 +41,19 @@ for (let i = 0; i < max*5; i++) {
     grid.appendChild(c);
 }
 
-// Wörter laden
-fetch("woerter.txt").then(r => r.text()).then(t => {
-    // Zeilen aufsplitten, Leerzeichen entfernen, nur 5-Buchstaben-Wörter
-    words = t.split("\n")
-             .map(w => w.trim().toLowerCase())
-             .filter(w => w.length === 5);
-    solution = words[Math.floor(Math.random() * words.length)];
-    console.log("Lösungswort:", solution); // für Testzwecke
-});
+// Wörter laden (kommagetrennt ODER zeilenweise)
+fetch("woerter.txt")
+  .then(r => r.text())
+  .then(t => {
+      words = t
+        .toLowerCase()
+        .split(/[\n,]+/)   // ← trennt bei Zeilenumbrüchen ODER Kommata
+        .map(w => w.trim())
+        .filter(w => w.length === 5);
+
+      solution = words[Math.floor(Math.random() * words.length)];
+      console.log("Lösungswort:", solution);
+  });
 
 // Enter-Taste unterstützen
 document.getElementById("guess").addEventListener("keydown", function(e) {
